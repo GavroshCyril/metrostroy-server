@@ -14,6 +14,7 @@ router.post("/", multipartMiddleware, async (req, res) => {
   try {
     if (!req.body) return res.sendStatus(400);
     console.log(req.body.userName);
+
     const abc = req.body.userName;
     const salt = await bcrypt.genSalt(10);
     const creds = {
