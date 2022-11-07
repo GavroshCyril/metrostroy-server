@@ -1,3 +1,4 @@
+// подключение пакетов
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
@@ -31,7 +32,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/user", userRouter);
 
-// catch 404 and forward to error handler
+// вызвать 404 оишбку в случае ошибки  (catch 404 and forward to error handler)
 app.use(function (req, res, next) {
   next(createError(404));
 });
@@ -48,7 +49,7 @@ app.use(function (err, req, res, next) {
 });
 
 // подключение бд
-const mysql = require("mysql");
+/* const mysql = require("mysql");
 const connection = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -64,6 +65,6 @@ connection.query("SELECT 1 + 1 AS solution", (err, rows, fields) => {
   console.log("The solution is: ", rows[0].solution);
 });
 
-connection.end();
+connection.end(); */
 
 module.exports = app;
