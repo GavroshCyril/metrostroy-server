@@ -2,6 +2,7 @@
 /* const helper = require("../helper"); */
 /* const config = require("../config"); */
 const sql = require("../models/db.js");
+const bcrypt = require("bcrypt");
 
 const getMultiple = async () => {
   console.log("------------------------------- 1");
@@ -58,21 +59,22 @@ const createUser = async (creds) => {
 
 const loginUser = async (creds) => {
   console.log("ACHTUNG");
-  sql.query(`SELECT * FROM users WHERE name = ${creds.user}'`, (err, res) => {
+  sql.query(`SELECT * FROM users WHERE name = '${creds.user}'`, (err, res) => {
     console.log("user: ", res);
     console.log("err: ", err);
     if (err) {
       console.log("error: ", err);
-      result(err, null);
-      return;
+      //result(err, null);
+      //return;
     }
 
     if (res.length) {
-      console.log("found user: ", res[0]);
+      console.log("p1: ", res[0].password);
+      console.log("p2: ", creds.password);
       //result(null, res[0]);
       var passwordIsValid = bcrypt.compareSync(res[0].password, creds.password);
       console.log("passwordIsValid", passwordIsValid);
-      return;
+      //return;
     }
 
     // not found Tutorial with the id

@@ -5,10 +5,8 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var bodyParser = require("body-parser");
-
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/user");
-
 var app = express();
 
 // view engine setup
@@ -28,7 +26,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use("/", indexRouter);
 app.use("/user", userRouter);
 
@@ -37,34 +34,15 @@ app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// обработчик ошибок
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
+  // визуализировать страницу ошибки
   res.status(err.status || 500);
   res.render("error");
 });
-
-// подключение бд
-/* const mysql = require("mysql");
-const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "80298677125@gavrosh",
-  database: "metrostroymuseum",
-});
-
-connection.connect();
-
-connection.query("SELECT 1 + 1 AS solution", (err, rows, fields) => {
-  if (err) throw err;
-
-  console.log("The solution is: ", rows[0].solution);
-});
-
-connection.end(); */
 
 module.exports = app;

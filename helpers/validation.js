@@ -9,6 +9,6 @@ exports.signupValidation = [
 
 exports.loginValidation = [
   check("password", "Password must be 6 or more characters").isLength({
-    min: 6,
+    min: 2,
   }),
 ];
