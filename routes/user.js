@@ -1,98 +1,79 @@
-var express = require("express");
+const express = require("express");
 const bcrypt = require("bcrypt");
-var multipart = require("connect-multiparty");
-const { getMultiple, createUser } = require("../db/requests.js");
+const multipart = require("connect-multiparty");
+const jwt = require("jsonwebtoken");
+
+const { getMultiple, createUser, loginUser } = require("../db/requests.js");
 const { signupValidation } = require("../helpers/validation.js");
-var router = express.Router();
-var multipartMiddleware = multipart();
-const sql = require("../models/db.js");
-//const { query } = require("../helpers/mysqlhelper");
+const { authenticateToken } = require("../middlewares/authenticateToken");
+const { generateAccessToken } = require("../helpers/auth");
+
+const router = express.Router();
+const multipartMiddleware = multipart();
 
 /* GET users listing. */
-router.get("/", function (req, res, next) {
-  res.send("respond with a resource");
-});
-
-router.post("/all", multipartMiddleware, async (req, res) => {
+router.get("/all", authenticateToken, async (req, res) => {
   try {
-    if (!req.body) return res.sendStatus(400);
-    console.log(req.body.userName);
+    console.log("user", req.user);
 
-    const abc = req.body.userName;
-    const salt = await bcrypt.genSalt(10);
-    const creds = {
-      user: req.body.userName,
-      password: await bcrypt.hash(req.body.password, salt),
-    };
-    console.log(creds.password);
-    console.log("------------------------------- 3");
-    /* sql.query(`SELECT id, name, password FROM users`, (err, res) => {
-      console.log("found tutorial: ", res);
-      console.log("found tutorial: ", err);
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-
-      if (res.length) {
-        console.log("found tutorial: ", res[0]);
-        //result(null, res[0]);
-        return;
-      }
-
-      // not found Tutorial with the id
-      //result({ kind: "not_found" }, null);
-    }); */
-    // const rows = await query(`SELECT id, name, password FROM users`);
-    //console.log("rows", rows);
-
-    const kirik = await getMultiple();
-    // console.log(kirik);
-    const getUsers = res.send(`${JSON.stringify(creds)}`);
+    await getMultiple(res);
   } catch (err) {
     console.log("err", err);
   }
 });
 
+//sing up
 router.post("/", multipartMiddleware, signupValidation, async (req, res) => {
   try {
     if (!req.body) return res.sendStatus(400);
 
     const salt = await bcrypt.genSalt(10);
-    const creds = {
-      user: req.body.name,
-      password: await bcrypt.hash(req.body.password, salt),
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+    const user = {
+      name: req.body.name,
+      password: hashedPassword,
     };
-    console.log(creds.password);
 
-    const kirik = await createUser(creds);
-
-    console.log(kirik);
-    const getUsers = res.send(`${JSON.stringify(creds)}`);
+    await createUser(user, res);
   } catch (err) {
     console.log("err", err);
   }
 });
 
 // логин
-router.get("/", multipartMiddleware, async (req, res) => {
+router.post("/login", multipartMiddleware, async (req, res) => {
   try {
     if (!req.body) return res.sendStatus(400);
-    console.log("LOGIN");
-    const creds = {
-      user: req.query.name,
-      password: req.query.password,
+
+    const user = {
+      name: req.body.name,
+      password: req.body.password,
     };
-    console.log("password", creds.password);
 
-    const kirik = await loginUser(creds);
-
-    console.log("RES", kirik);
-    const getUsers = res.send(`${JSON.stringify(creds)}`);
+    await loginUser(user, res);
   } catch (err) {
     console.log("err", err);
   }
+});
+
+//Refresh token in request
+router.post("/token", async (req, res) => {
+  const refreshToken = req.body.token
+  if (refreshToken == null) return res.sendStatus(401);
+  if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
+
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err, user) => {
+    if (err) return res.sendStatus(403);
+    const accessToken = generateAccessToken({ name: user.name })
+    res.json({ accessToken: accessToken })
+    
+  })
+});
+
+router.delete("/logout", async (req, res) => {
+  refreshTokens = refreshTokens.filter(token !== req.body.token)
+  res.sendStatus(204)
 });
 
 module.exports = router;
