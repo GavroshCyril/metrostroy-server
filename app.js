@@ -9,6 +9,7 @@ var indexRouter = require("./routes/index");
 var userRouter = require("./routes/user");
 var app = express();
 
+require("dotenv").config();
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");

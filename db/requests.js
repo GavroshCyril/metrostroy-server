@@ -1,88 +1,78 @@
-//const mysqlhelper = require("../helpers/mysqlhelper");
-/* const helper = require("../helper"); */
-/* const config = require("../config"); */
-const sql = require("../models/db.js");
 const bcrypt = require("bcrypt");
 
-const getMultiple = async () => {
-  console.log("------------------------------- 1");
-  sql.query(`SELECT id, name, password FROM users`, (err, res) => {
-    console.log("found tutorial: ", res);
-    console.log("found tutorial: ", err);
+const sql = require("../models/db.js");
+const { generateAccessToken, generateRefreshToken } = require("../helpers/auth");
+
+
+const getMultiple = async (res) => {
+  sql.query(`SELECT id, name, password FROM users`, (err, data) => {
     if (err) {
       console.log("error: ", err);
-      result(err, null);
+      res.status(400).json({
+        status: "failed",
+        message: err.message
+      });
       return;
     }
 
-    if (res.length) {
-      console.log("found tutorial: ", res[0]);
-      //result(null, res[0]);
-      return;
-    }
-
-    // not found Tutorial with the id
-    //result({ kind: "not_found" }, null);
+    res.status(200).json({
+      status: "success",
+      data: data
+    });
   });
-  /*  console.log(data);
-  const meta = { page };
-  console.log(meta); */
 };
 
-// `SELECT * FROM users WHERE email = ${db.escape(req.body.email)};`
-const createUser = async (creds) => {
+const createUser = async (user, res) => {
   sql.query(
-    `INSERT INTO users (name, password) values ('${creds.user}', '${creds.password}')`,
-    (err, res) => {
-      console.log("found tutorial: ", res);
-      console.log("found tutorial: ", err);
+    `INSERT INTO users (name, password) values ('${user.name}', '${user.password}')`,
+    (err, data) => {
       if (err) {
         console.log("error: ", err);
-        result(err, null);
+        res.status(400).json({
+          status: "failed",
+          message: err.message
+        });
         return;
       }
 
-      if (res.length) {
-        console.log("found tutorial: ", res[0]);
-        //result(null, res[0]);
-        return;
-      }
-
-      // not found Tutorial with the id
-      //result({ kind: "not_found" }, null);
+      res.status(200).json({
+        status: "success",
+      });
     }
   );
-  /*  console.log(data);
-    const meta = { page };
-    console.log(meta); */
 };
 
-const loginUser = async (creds) => {
-  console.log("ACHTUNG");
-  sql.query(`SELECT * FROM users WHERE name = '${creds.user}'`, (err, res) => {
-    console.log("user: ", res);
-    console.log("err: ", err);
+let refreshTokens = [];
+
+const loginUser = async (user, res) => {
+  sql.query(`SELECT * FROM users WHERE name = '${user.name}'`, (err, data) => {
     if (err) {
       console.log("error: ", err);
-      //result(err, null);
-      //return;
+      res.status(400).json({
+        status: "failed",
+        message: err.message
+      });
+      return;
     }
 
-    if (res.length) {
-      console.log("p1: ", res[0].password);
-      console.log("p2: ", creds.password);
-      //result(null, res[0]);
-      var passwordIsValid = bcrypt.compareSync(res[0].password, creds.password);
-      console.log("passwordIsValid", passwordIsValid);
-      //return;
-    }
+    if (data.length) {
+      const passwordIsValid = bcrypt.compareSync(user.password, data[0].password);
 
-    // not found Tutorial with the id
-    //result({ kind: "not_found" }, null);
+      if (passwordIsValid) {
+        const accessToken = generateAccessToken(user)
+        const refreshToken = generateRefreshToken(user)
+
+        refreshTokens.push(refreshToken)
+
+        res.json({ accessToken: accessToken, refreshToken: refreshToken })
+      } else {
+        res.status(400).json({
+          status: "failed",
+          message: "Invalid password"
+        });
+      }
+    }
   });
-  /*  console.log(data);
-      const meta = { page };
-      console.log(meta); */
 };
 
 module.exports = {
