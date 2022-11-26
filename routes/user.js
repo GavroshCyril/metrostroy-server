@@ -1,12 +1,11 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const multipart = require("connect-multiparty");
-const jwt = require("jsonwebtoken");
 
 const { getMultiple, createUser, loginUser } = require("../db/requests.js");
 const { signupValidation } = require("../helpers/validation.js");
 const { authenticateToken } = require("../middlewares/authenticateToken");
-const { generateAccessToken } = require("../helpers/auth");
+const { getRefreshToken, deleteRefreshToken } = require("../db/requests");
 
 const router = express.Router();
 const multipartMiddleware = multipart();
@@ -60,20 +59,12 @@ router.post("/login", multipartMiddleware, async (req, res) => {
 //Refresh token in request
 router.post("/token", async (req, res) => {
   const refreshToken = req.body.token
-  if (refreshToken == null) return res.sendStatus(401);
-  if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
 
-  jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err, user) => {
-    if (err) return res.sendStatus(403);
-    const accessToken = generateAccessToken({ name: user.name })
-    res.json({ accessToken: accessToken })
-    
-  })
+  await getRefreshToken(refreshToken, res)
 });
 
-router.delete("/logout", async (req, res) => {
-  refreshTokens = refreshTokens.filter(token !== req.body.token)
-  res.sendStatus(204)
+router.delete("/logout/:refreshToken", async (req, res) => {
+  await deleteRefreshToken(req.params.refreshToken, res)
 });
 
 module.exports = router;

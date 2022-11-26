@@ -8,6 +8,22 @@ var bodyParser = require("body-parser");
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/user");
 var app = express();
+const cors = require("cors")
+
+const whitelist = ["http://localhost:3001"]
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  },
+  credentials: true,
+}
+app.use(cors(corsOptions))
+
 
 require("dotenv").config();
 // view engine setup

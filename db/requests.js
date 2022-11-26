@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const sql = require("../models/db.js");
 const { generateAccessToken, generateRefreshToken } = require("../helpers/auth");
-
 
 const getMultiple = async (res) => {
   sql.query(`SELECT id, name, password FROM users`, (err, data) => {
@@ -42,8 +42,6 @@ const createUser = async (user, res) => {
   );
 };
 
-let refreshTokens = [];
-
 const loginUser = async (user, res) => {
   sql.query(`SELECT * FROM users WHERE name = '${user.name}'`, (err, data) => {
     if (err) {
@@ -59,13 +57,34 @@ const loginUser = async (user, res) => {
       const passwordIsValid = bcrypt.compareSync(user.password, data[0].password);
 
       if (passwordIsValid) {
-        const accessToken = generateAccessToken(user)
-        const refreshToken = generateRefreshToken(user)
+        const userFromDB = {
+          id: data[0].id,
+          name: data[0].name,
+          role: data[0].role,
+        }
+        const accessToken = generateAccessToken(userFromDB)
+        const refreshToken = generateRefreshToken(userFromDB)
 
-        refreshTokens.push(refreshToken)
+        console.log("refreshToken to push", refreshToken)
 
-        res.json({ accessToken: accessToken, refreshToken: refreshToken })
+        sql.query(
+          `INSERT INTO refreshtokens (refreshtoken) values ('${refreshToken}')`,
+          (err, data) => {
+            if (err) {
+              console.log("error: ", err);
+              res.status(400).json({
+                status: "failed",
+                message: "Error while writing refreshtoken to DB"
+              });
+              return;
+            }
+
+            res.status(200).json({ accessToken: accessToken, refreshToken: refreshToken })
+          }
+        );
+      
       } else {
+
         res.status(400).json({
           status: "failed",
           message: "Invalid password"
@@ -75,8 +94,45 @@ const loginUser = async (user, res) => {
   });
 };
 
+const getRefreshToken = async (refreshtoken,res) => {
+  sql.query(`SELECT * FROM refreshtokens WHERE refreshtoken = '${refreshtoken}'`, (err, data) => {
+    if (err) {
+      console.log("error: ", err);
+      res.status(403).json({
+        status: "failed",
+        message: err.message
+      });
+      return;
+    }
+    console.log("data", data[0].refreshtoken);
+    jwt.verify(data[0].refreshtoken, process.env.REFRESH_TOKEN, (err, user) => {
+      if (err) return res.sendStatus(403);
+      const accessToken = generateAccessToken({ name: user.name })
+      res.status(200).json({ accessToken: accessToken })
+      
+    })
+  });
+};
+
+const deleteRefreshToken = async (refreshtoken, res) => {
+  sql.query(`DELETE FROM refreshtokens WHERE refreshtoken = '${refreshtoken}'`, (err, data) => {
+    if (err) {
+      console.log("error: ", err);
+      res.status(403).json({
+        status: "failed",
+        message: err.message
+      });
+      return;
+    }
+
+    res.status(204).json({ status: "failed", })
+  });
+};
+
 module.exports = {
   getMultiple,
   createUser,
   loginUser,
+  getRefreshToken,
+  deleteRefreshToken,
 };
