@@ -2,10 +2,10 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const multipart = require("connect-multiparty");
 
-const { getMultiple, createUser, loginUser } = require("../db/requests.js");
+const { getMultiple, createUser, loginUser } = require("../db/users.js");
 const { signupValidation } = require("../helpers/validation.js");
 const { authenticateToken } = require("../middlewares/authenticateToken");
-const { getRefreshToken, deleteRefreshToken } = require("../db/requests");
+const { getRefreshToken, deleteRefreshToken } = require("../db/users");
 
 const router = express.Router();
 const multipartMiddleware = multipart();
