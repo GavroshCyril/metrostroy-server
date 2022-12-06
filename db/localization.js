@@ -64,7 +64,7 @@ const getAll = async (res) => {
         console.log("-----------")
         console.log("row", row)
         const category = row.category
-        const subcategory = row.subcategory
+
         console.log("category", category)
         const isCategoryExist = result.en.hasOwnProperty(category);
         if(!isCategoryExist) {
@@ -73,9 +73,10 @@ const getAll = async (res) => {
           result.by[category] = {}
 
           addCategory(result, row)
-        } else {
-          addCategory(result, row)
-        }   
+        } 
+        // else {
+        //   addCategory(result, row)
+        // }   
         console.log("isCategoryExist", isCategoryExist)
         console.log("-----------")
       })
@@ -90,12 +91,12 @@ const getAll = async (res) => {
   };
 
 const addCategory = (result, row) => {
-    const isSubCategoryExist = result.en[row.category].hasOwnProperty(row.subcategory);
-          if(!isSubCategoryExist) {
-            result.en[row.category][row.subcategory] = row.en
-            result.ru[row.category][row.subcategory] = row.ru
-            result.by[row.category][row.subcategory] = row.by
-          }
+    // const isSubCategoryExist = result.en[row.category].hasOwnProperty(row.subcategory);
+          // if(!isSubCategoryExist) {
+            result.en[row.category] = row.en
+            result.ru[row.category] = row.ru
+            result.by[row.category] = row.by
+          // }
 } 
 
 // UPDATE Customers
@@ -105,10 +106,15 @@ const addCategory = (result, row) => {
 // UPDATE translations
 // SET '${locale}' = '${value}'
 // WHERE category = '${category}' AND subcategory = '${subcategory};
-const updateLocalisation = async (locale, value, category, subcategory, res) => {
+
+// queryRow UPDATE translations
+//   SET en = 'Abc'
+//   WHERE category = 'home_title'
+
+const updateLocalisation = async (locale, value, category, res) => {
   const queryRow = `UPDATE translations
   SET ${locale} = '${value}'
-  WHERE category = '${category}' AND subcategory = '${subcategory}'`
+  WHERE category = '${category}'`
   console.log("queryRow", queryRow)
   sql.query(queryRow, (err, data) => {
     if (err) {

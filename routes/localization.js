@@ -25,9 +25,9 @@ router.put("/", multipartMiddleware, async (req, res) => {
   try {
     if (!req.body) return res.sendStatus(400);
     console.log("req.body", req.body)
-    const { locale, value, category, subcategory } = req.body
+    const { locale, value, category } = req.body
 
-    await updateLocalisation(locale, value, category, subcategory, res);
+    await updateLocalisation(locale, value, category, res);
   } catch (err) {
     console.log("err", err);
   }
