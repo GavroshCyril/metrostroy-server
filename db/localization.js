@@ -25,31 +25,111 @@ const sql = require("../models/db.js");
 // FROM localizations
 // RIGHT JOIN translates_by ON localizations.localization_id = translates_by.localization_id;
 
+// SELECT *
+// FROM localizations l
+// INNER JOIN translates_by b ON l.localization_id = b.localization_id
+// WHERE l.localization_id = b.localization_id
+
+
+//SELECT * FROM localizations l, translates_by t_by, translates_en t_en WHERE t_by.localization_id = l.localization_id AND t_en.localization = l.localization_id;
+const sendErr = (res, err) => {
+  res.status(400).json({
+    status: "failed",
+    message: err.message
+  });
+  return;
+}
 const getAll = async (res) => {
-    sql.query(`SELECT *
-    FROM localizations
-    INNER JOIN translates_by ON localizations.localization_id = translates_by.localization_id
-    INNER JOIN translates_ru ON localizations.localization_id = translates_ru.localization_id
-    INNER JOIN translates_en ON localizations.localization_id = translates_en.localization_id;
+    sql.query(`SELECT * FROM translations;
     `, (err, data) => {
       if (err) {
-        console.log("error: ", err);
-        res.status(400).json({
-          status: "failed",
-          message: err.message
-        });
-        return;
+        sendErr(res, err)
       }
 
       console.log("data", data)
+
+      const result = {
+        en: {
+
+        },
+        ru: {
+
+        },
+        by: {
+          
+        }
+      }
+
+      data.map((row) => {
+        console.log("-----------")
+        console.log("row", row)
+        const category = row.category
+
+        console.log("category", category)
+        const isCategoryExist = result.en.hasOwnProperty(category);
+        if(!isCategoryExist) {
+          result.en[category] = {}
+          result.ru[category] = {}
+          result.by[category] = {}
+
+          addCategory(result, row)
+        } 
+        // else {
+        //   addCategory(result, row)
+        // }   
+        console.log("isCategoryExist", isCategoryExist)
+        console.log("-----------")
+      })
+      console.log("result", result)
+      
   
       res.status(200).json({
         status: "success",
-        data: data
+        data: result
       });
     });
   };
 
-  module.exports = {
-    getAll,
-  };
+const addCategory = (result, row) => {
+    // const isSubCategoryExist = result.en[row.category].hasOwnProperty(row.subcategory);
+          // if(!isSubCategoryExist) {
+            result.en[row.category] = row.en
+            result.ru[row.category] = row.ru
+            result.by[row.category] = row.by
+          // }
+} 
+
+// UPDATE Customers
+// SET ContactName = 'Alfred Schmidt', City= 'Frankfurt'
+// WHERE CustomerID = 1;
+
+// UPDATE translations
+// SET '${locale}' = '${value}'
+// WHERE category = '${category}' AND subcategory = '${subcategory};
+
+// queryRow UPDATE translations
+//   SET en = 'Abc'
+//   WHERE category = 'home_title'
+
+const updateLocalisation = async (locale, value, category, res) => {
+  const queryRow = `UPDATE translations
+  SET ${locale} = '${value}'
+  WHERE category = '${category}'`
+  console.log("queryRow", queryRow)
+  sql.query(queryRow, (err, data) => {
+    if (err) {
+      sendErr(res, err)
+    }
+    console.log("data", data)
+    res.status(200).json({
+      status: "success",
+    });
+
+
+  });
+}
+
+module.exports = {
+  getAll,
+  updateLocalisation,
+};
