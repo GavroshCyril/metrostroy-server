@@ -9,8 +9,9 @@ const indexRouter = require("./routes/index");
 const userRouter = require("./routes/user");
 const localizationRouter = require("./routes/localization");
 const lineRouter = require("./routes/line");
+const stationRouter = require("./routes/station");
 const app = express();
-const cors = require("cors")
+const cors = require("cors");
 
 const whitelist = ["http://localhost:3001", "http://localhost:3002"]
 
@@ -49,6 +50,7 @@ app.use("/", indexRouter);
 app.use("/user", userRouter);
 app.use("/localization", localizationRouter);
 app.use("/line", lineRouter);
+app.use("/station", stationRouter);
 
 // вызвать 404 оишбку в случае ошибки  (catch 404 and forward to error handler)
 app.use(function (req, res, next) {
