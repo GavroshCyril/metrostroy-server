@@ -55,7 +55,7 @@ const getAll = async (res) => {
         ru: {
 
         },
-        by: {
+        bel: {
           
         }
       }
@@ -68,7 +68,7 @@ const getAll = async (res) => {
         if(!isCategoryExist) {
           result.en[category] = {}
           result.ru[category] = {}
-          result.by[category] = {}
+          result.bel[category] = {}
 
           addCategory(result, row)
         } 
@@ -89,7 +89,7 @@ const addCategory = (result, row) => {
           // if(!isSubCategoryExist) {
             result.en[row.category] = row.en
             result.ru[row.category] = row.ru
-            result.by[row.category] = row.by
+            result.bel[row.category] = row.bel
           // }
 } 
 

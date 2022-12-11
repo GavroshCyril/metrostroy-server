@@ -1,15 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path");
-const sql = require("../models/db.js");
 
-const bcrypt = require("bcrypt");
+const sql = require("../models/db.js");
 const multipart = require("connect-multiparty");
-const { uploadImage } = require("../db/station.js");
-const { signupValidation } = require("../helpers/validation.js");
-const { getRefreshToken, deleteRefreshToken } = require("../db/users");
 const { uploadImageMiddleware } = require("../middlewares/uploadImage.js");
-const { authenticateToken } = require("../middlewares/authenticateToken");
 const { sendErr } = require("../helpers/sendErr");
 
 const multipartMiddleware = multipart();
@@ -20,10 +15,8 @@ const uploadSingleImage = uploadImageMiddleware.single('image');
 router.post("/image", async (req, res) => {
   try {
     uploadSingleImage(req, res, function (err) {
-      console.log("req", req);
-      console.log(req.file);
       const { lineName } = req.body;
-      console.log("lineName", lineName)
+
       if (!lineName) {
         return res.send({ error: `You must provide line name.` });
       }
@@ -96,11 +89,6 @@ router.post("/", async (req, res) => {
         stationDescriptionRU,
         lineId,
       } = req.body;
-      console.log("---------------------")
-      console.log("req.body", req.body)
-      console.log("stationNameDB", stationNameDB)
-      console.log("req.file", req.file);
-      console.log("---------------------")
       if (!stationNameDB) {
         return res.status(400).send({ error: `You must provide line name.` });
       }
@@ -180,27 +168,46 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/", multipartMiddleware, async (req, res) => {
+router.delete("/:stationName/:stationDescription", multipartMiddleware, async (req, res) => {
   try {
-    if (!req.body) return res.sendStatus(400);
+    if (!req.params) return res.sendStatus(400);
 
-    const { stationName } = req.body
+    const { stationName, stationDescription } = req.params
+
+    console.log("---------------------")
+    console.log("req.params", req.params)
     console.log("stationName", stationName)
+    console.log("stationDescription", stationDescription)
+    console.log("---------------------")
 
-    const queryRow = `
+    const deleteFromStations = `
           DELETE FROM stations WHERE station_name = '${stationName}';
           `
-    sql.query(queryRow, (err, data) => {
+    const deleteFromTranslation = `
+          DELETE FROM translations WHERE category IN ('${stationName}', '${stationDescription}');
+          `
+
+    sql.query(deleteFromStations, (err, data) => {
       console.log("err", err)
       if (err) {
         sendErr(res, err)
       }
       console.log("data", data)
 
-      res.status(200).send({
-        status: "success"
-      })
+      sql.query(deleteFromTranslation, (err, data) => {
+        console.log("err", err)
+        if (err) {
+          sendErr(res, err)
+        }
+        console.log("data", data)
+
+        res.status(200).send({
+          status: "success"
+        })
+      });
     });
+
+    
 
   } catch (err) {
     return res.status(400).send({ error: err.message })
