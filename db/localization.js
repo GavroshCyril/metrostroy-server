@@ -61,12 +61,10 @@ const getAll = async (res) => {
       }
 
       data.map((row) => {
-        console.log("-----------")
-        console.log("row", row)
+        console.log("--getAll localiz")
         const category = row.category
-
-        console.log("category", category)
         const isCategoryExist = result.en.hasOwnProperty(category);
+
         if(!isCategoryExist) {
           result.en[category] = {}
           result.ru[category] = {}
@@ -77,12 +75,8 @@ const getAll = async (res) => {
         // else {
         //   addCategory(result, row)
         // }   
-        console.log("isCategoryExist", isCategoryExist)
-        console.log("-----------")
       })
-      console.log("result", result)
-      
-  
+
       res.status(200).json({
         status: "success",
         data: result
