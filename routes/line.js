@@ -8,8 +8,6 @@ const multipartMiddleware = multipart();
 
 router.get("/all", async (req, res) => {
     try {
-      console.log("user", req.user);
-  
       await getAll(res);
     } catch (err) {
       console.log("err", err);
