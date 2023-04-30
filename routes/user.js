@@ -26,15 +26,22 @@ router.post("/", multipartMiddleware, signupValidation, async (req, res) => {
   try {
     if (!req.body) return res.sendStatus(400);
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    if (req.body.password === req.body.confirmPassword) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-    const user = {
-      name: req.body.name,
-      password: hashedPassword,
-    };
+      const user = {
+        name: req.body.userName,
+        password: hashedPassword,
+      };
 
-    await createUser(user, res);
+      await createUser(user, res);
+    } else {
+      return res.status(403).json({
+        status: "failed",
+        message: "Password does not match"
+      });
+    }
   } catch (err) {
     console.log("err", err);
   }

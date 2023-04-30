@@ -54,6 +54,12 @@ const loginUser = async (user, res) => {
     }
 
     if (data.length) {
+      if (user.password === undefined) {
+        res.status(400).json({
+          status: "failed",
+          message: "Password is not defined"
+        });
+      }
       const passwordIsValid = bcrypt.compareSync(user.password, data[0].password);
 
       if (passwordIsValid) {
